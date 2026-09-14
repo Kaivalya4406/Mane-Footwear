@@ -1,7 +1,8 @@
-import { collections } from "../../data/collections";
+import { getCollections } from "../../lib/data/collections";
 import CollectionCard from "./CollectionCard";
 
 export default function CollectionsGrid() {
+  const collections = getCollections();
   const [featuredCollection, ...restCollections] = collections;
 
   return (

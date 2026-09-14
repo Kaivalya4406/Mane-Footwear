@@ -1,4 +1,4 @@
-import { products } from "../../data/product";
+import { getProducts } from "../../lib/data/products";
 import ProductCard from "./ProductCard";
 
 export default function RelatedProducts({
@@ -8,6 +8,7 @@ export default function RelatedProducts({
   currentProductId: string;
   collectionId: string;
 }) {
+  const products = getProducts();
   const related = products
     .filter((product) => product.collectionId === collectionId && product.id !== currentProductId)
     .slice(0, 3);

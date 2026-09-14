@@ -1,7 +1,9 @@
-import { products } from "../../data/product";
+import { getProducts } from "../../lib/data/products";
 import FeaturedProductCard from "./FeaturedProductCard";
 
 export default function FeaturedProducts() {
+  const products = getProducts();
+
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 md:py-20 lg:px-10">

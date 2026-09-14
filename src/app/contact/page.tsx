@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { branches } from "../../data/branches";
+import { getBranches } from "../../lib/data/branches";
 import { siteContact, whatsappHref, mapsHref } from "../../data/contact";
 import BranchCard from "../../components/shared/BranchCard";
-
 export const metadata: Metadata = {
   title: "Contact Us | MANE FOOTWEAR",
   description:
@@ -10,6 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
+  const branches = getBranches();
+
   return (
     <>
       <section className="bg-offwhite">

@@ -3,19 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ImagePlaceholder from "../../../components/UI/ImagePlaceholder";
 import RelatedProducts from "../../../components/shared/RelatedProducts";
-import { products } from "../../../data/product";
+import { getProductById } from "../../../lib/data/products";
 
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };
 
-function getProduct(id: string) {
-  return products.find((product) => product.id === id);
-}
-
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = getProduct(id);
+  const product = getProductById(id);
 
   if (!product) {
     return { title: "Product Not Found | MANE FOOTWEAR" };
@@ -29,7 +25,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const product = getProduct(id);
+  const product = getProductById(id);
 
   if (!product) {
     notFound();

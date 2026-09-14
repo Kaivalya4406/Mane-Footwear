@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { collections } from "../../data/collections";
-import { products } from "../../data/product";
+import { getCollections } from "../../lib/data/collections";
+import { getProducts } from "../../lib/data/products";
 import ProductCard from "./ProductCard";
 
 const ALL_CATEGORY = "all";
@@ -13,6 +13,8 @@ export default function CollectionsBrowser() {
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category") ?? ALL_CATEGORY;
   const [search, setSearch] = useState("");
+  const collections = getCollections();
+  const products = getProducts();
 
   const filterOptions = [
     { id: ALL_CATEGORY, name: "All" },
@@ -30,7 +32,7 @@ export default function CollectionsBrowser() {
         product.category.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, search]);
+  }, [activeCategory, search, products]);
 
   function handleCategoryChange(categoryId: string) {
     const params = new URLSearchParams(searchParams.toString());

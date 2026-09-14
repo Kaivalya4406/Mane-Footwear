@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { branches } from "../../data/branches";
+import { getBranches } from "../../lib/data/branches";
 import BranchCard from "../../components/shared/BranchCard";
 
 export const metadata: Metadata = {
@@ -10,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function BranchesPage() {
+  const branches = getBranches();
+
   return (
     <>
       <section className="bg-offwhite">

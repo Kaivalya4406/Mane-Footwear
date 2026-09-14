@@ -1,8 +1,8 @@
 import { getCollections } from "../../lib/data/collections";
 import CollectionCard from "./CollectionCard";
 
-export default function CollectionsGrid() {
-  const collections = getCollections();
+export default async function CollectionsGrid() {
+  const collections = await getCollections();
   const [featuredCollection, ...restCollections] = collections;
 
   return (

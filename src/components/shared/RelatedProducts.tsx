@@ -1,14 +1,14 @@
 import { getProducts } from "../../lib/data/products";
 import ProductCard from "./ProductCard";
 
-export default function RelatedProducts({
+export default async function RelatedProducts({
   currentProductId,
   collectionId,
 }: {
   currentProductId: string;
   collectionId: string;
 }) {
-  const products = getProducts();
+  const products = await getProducts();
   const related = products
     .filter((product) => product.collectionId === collectionId && product.id !== currentProductId)
     .slice(0, 3);

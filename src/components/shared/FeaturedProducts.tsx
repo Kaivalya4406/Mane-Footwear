@@ -1,8 +1,8 @@
 import { getProducts } from "../../lib/data/products";
 import FeaturedProductCard from "./FeaturedProductCard";
 
-export default function FeaturedProducts() {
-  const products = getProducts();
+export default async function FeaturedProducts() {
+  const products = await getProducts();
 
   return (
     <section className="bg-white">

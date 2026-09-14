@@ -2,19 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getCollections } from "../../lib/data/collections";
-import { getProducts } from "../../lib/data/products";
 import ProductCard from "./ProductCard";
+import type { Collection, Product } from "../../types";
 
 const ALL_CATEGORY = "all";
 
-export default function CollectionsBrowser() {
+type CollectionsBrowserProps = {
+  collections: Collection[];
+  products: Product[];
+};
+
+export default function CollectionsBrowser({ collections, products }: CollectionsBrowserProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeCategory = searchParams.get("category") ?? ALL_CATEGORY;
   const [search, setSearch] = useState("");
-  const collections = getCollections();
-  const products = getProducts();
 
   const filterOptions = [
     { id: ALL_CATEGORY, name: "All" },

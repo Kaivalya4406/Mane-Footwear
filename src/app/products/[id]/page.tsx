@@ -11,7 +11,7 @@ type ProductPageProps = {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = getProductById(id);
+  const product = await getProductById(id);
 
   if (!product) {
     return { title: "Product Not Found | MANE FOOTWEAR" };
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const product = getProductById(id);
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();
@@ -72,7 +72,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </p>
 
             <div className="mt-6">
-                            <button
+              <button
                 type="button"
                 disabled
                 aria-disabled="true"

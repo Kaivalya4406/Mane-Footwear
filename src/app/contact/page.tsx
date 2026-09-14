@@ -8,8 +8,8 @@ export const metadata: Metadata = {
     "Contact MANE FOOTWEAR in Talegaon Dabhade by phone, WhatsApp or email — 9156310198 / manefootwear4406@gmail.com.",
 };
 
-export default function ContactPage() {
-  const branches = getBranches();
+export default async function ContactPage() {
+  const branches = await getBranches();
 
   return (
     <>

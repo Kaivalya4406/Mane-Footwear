@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     "MANE FOOTWEAR is the flagship of a wider family footwear business with stores across Talegaon Dabhade, Maharashtra.",
 };
 
-export default function BranchesPage() {
-  const branches = getBranches();
+export default async function BranchesPage() {
+  const branches = await getBranches();
 
   return (
     <>

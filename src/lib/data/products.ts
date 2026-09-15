@@ -38,7 +38,14 @@ function mapProduct(row: {
 }
 
 export async function getProducts(): Promise<Product[]> {
-  const rows = await prisma.product.findMany();
+  let rows;
+  try {
+    rows = await prisma.product.findMany();
+  } catch (error) {
+    console.error("getProducts: database read failed", error);
+    throw new Error("We're having trouble loading our products right now.");
+  }
+
   const mapped = rows.map(mapProduct);
   return PRODUCT_ORDER
     .map((id) => mapped.find((product) => product.id === id))
@@ -46,6 +53,13 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
-  const row = await prisma.product.findUnique({ where: { id } });
+  let row;
+  try {
+    row = await prisma.product.findUnique({ where: { id } });
+  } catch (error) {
+    console.error(`getProductById(${id}): database read failed`, error);
+    throw new Error("We're having trouble loading this product right now.");
+  }
+
   return row ? mapProduct(row) : undefined;
 }

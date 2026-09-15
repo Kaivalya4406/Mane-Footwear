@@ -8,6 +8,8 @@ import BranchNetwork from "../components/shared/BranchNetwork";
 import Testimonials from "../components/shared/Testimonials";
 import FinalCTA from "../components/shared/FinalCTA";
 
+export const revalidate = 60;
+
 export default function Home() {
   return (
     <>

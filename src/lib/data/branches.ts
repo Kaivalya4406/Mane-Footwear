@@ -30,7 +30,14 @@ function mapBranch(row: {
 }
 
 export async function getBranches(): Promise<Branch[]> {
-  const rows = await prisma.branch.findMany();
+  let rows;
+  try {
+    rows = await prisma.branch.findMany();
+  } catch (error) {
+    console.error("getBranches: database read failed", error);
+    throw new Error("We're having trouble loading our store locations right now.");
+  }
+
   const mapped = rows.map(mapBranch);
   return BRANCH_ORDER
     .map((id) => mapped.find((branch) => branch.id === id))

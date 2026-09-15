@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { getBranches } from "../../lib/data/branches";
 import { siteContact, whatsappHref, mapsHref } from "../../data/contact";
 import BranchCard from "../../components/shared/BranchCard";
+
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Contact Us | MANE FOOTWEAR",
   description:

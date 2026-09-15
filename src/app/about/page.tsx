@@ -3,6 +3,8 @@ import ImagePlaceholder from "../../components/UI/ImagePlaceholder";
 import BranchNetwork from "../../components/shared/BranchNetwork";
 import FinalCTA from "../../components/shared/FinalCTA";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Our Story | MANE FOOTWEAR",
   description:

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getBranches } from "../../lib/data/branches";
 import BranchCard from "../../components/shared/BranchCard";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Our Stores | MANE FOOTWEAR",
   description:

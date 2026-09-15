@@ -19,7 +19,14 @@ function mapCollection(row: {
 }
 
 export async function getCollections(): Promise<Collection[]> {
-  const rows = await prisma.collection.findMany();
+  let rows;
+  try {
+    rows = await prisma.collection.findMany();
+  } catch (error) {
+    console.error("getCollections: database read failed", error);
+    throw new Error("We're having trouble loading our collections right now.");
+  }
+
   const mapped = rows.map(mapCollection);
   return COLLECTION_ORDER
     .map((id) => mapped.find((collection) => collection.id === id))

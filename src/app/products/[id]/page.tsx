@@ -5,6 +5,8 @@ import ImagePlaceholder from "../../../components/UI/ImagePlaceholder";
 import RelatedProducts from "../../../components/shared/RelatedProducts";
 import { getProductById } from "../../../lib/data/products";
 
+export const revalidate = 60;
+
 type ProductPageProps = {
   params: Promise<{ id: string }>;
 };

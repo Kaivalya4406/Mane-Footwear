@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ImagePlaceholder from "../../components/UI/ImagePlaceholder";
 import type { Product } from "../../types";
+import { formatPrice } from "../../lib/formatPrice";
 
 export default function FeaturedProductCard({ product }: { product: Product }) {
   return (
@@ -16,7 +17,7 @@ export default function FeaturedProductCard({ product }: { product: Product }) {
       <div className="flex flex-1 flex-col p-5">
         <p className="text-xs font-medium text-foreground/70">{product.category}</p>
         <h3 className="mt-1 text-base font-semibold text-navy">{product.name}</h3>
-        <p className="mt-2 text-sm font-semibold text-orange-dark">{product.price}</p>
+        <p className="mt-2 text-sm font-semibold text-orange-dark">{formatPrice(product.priceInPaise)}</p>
         <Link
           href={`/products/${product.id}`}
           className="mt-4 inline-flex items-center justify-center rounded-full border border-navy px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-navy hover:text-offwhite"

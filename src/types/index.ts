@@ -15,13 +15,14 @@ export type Product = {
   category: string;
   collectionId: string;
   description: string;
-  price: string;
+  priceInPaise: number;
   badge?: "New" | "Popular";
   image?: string;
   iconKind: ShoeIconKind;
   sizes?: string[];
   inStock?: boolean;
-  isDemo: true;
+  isDemo: boolean;
+  isActive: boolean;
 };
 
 export type Branch = {

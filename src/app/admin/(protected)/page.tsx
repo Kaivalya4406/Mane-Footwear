@@ -1,13 +1,13 @@
 import Link from "next/link";
 import AdminPageHeader from "../../../components/admin/AdminPageHeader";
 import AdminStatCard from "../../../components/admin/AdminStatCard";
-import { getProducts } from "../../../lib/data/products";
+import { getAllProductsForAdmin } from "../../../lib/data/products";
 import { getCollections } from "../../../lib/data/collections";
 import { getBranches } from "../../../lib/data/branches";
 
 export default async function AdminPage() {
   const [products, collections, branches] = await Promise.all([
-    getProducts(),
+    getAllProductsForAdmin(),
     getCollections(),
     getBranches(),
   ]);

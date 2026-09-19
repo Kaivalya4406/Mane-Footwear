@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ImagePlaceholder from "../../../components/UI/ImagePlaceholder";
 import RelatedProducts from "../../../components/shared/RelatedProducts";
 import { getProductById } from "../../../lib/data/products";
+import { formatPrice } from "../../../lib/formatPrice";
 
 export const revalidate = 60;
 
@@ -62,8 +63,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.badge}
               </span>
             )}
-
-            <p className="mt-4 text-lg font-semibold text-orange-dark">{product.price}</p>
+            <p className="mt-4 text-lg font-semibold text-orange-dark">{formatPrice(product.priceInPaise)}</p>
 
             <p className="mt-4 text-sm leading-relaxed text-foreground/80 sm:text-base">
               {product.description}

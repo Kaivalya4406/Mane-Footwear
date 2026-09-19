@@ -19,7 +19,11 @@ export const metadata: Metadata = {
     "MANE FOOTWEAR is a family-owned footwear business with 50+ years of heritage in Talegaon Dabhade, Maharashtra, offering quality footwear for the whole family.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${manrope.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">

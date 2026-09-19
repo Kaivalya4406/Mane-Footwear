@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const NAV_ITEMS = [
   { label: "Overview", href: "/admin", available: true },
-  { label: "Products", available: false },
+  { label: "Products", href: "/admin/products", available: true },
   { label: "Inventory", available: false },
   { label: "Orders", available: false },
   { label: "Customers", available: false },

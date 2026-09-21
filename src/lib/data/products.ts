@@ -23,6 +23,7 @@ function mapProduct(row: {
   isDemo: boolean;
   isActive: boolean;
   collectionId: string;
+  createdAt: Date;
 }): Product {
   return {
     id: row.id,
@@ -42,16 +43,25 @@ function mapProduct(row: {
 export async function getProducts(): Promise<Product[]> {
   let rows;
   try {
-    rows = await prisma.product.findMany({ where: { isActive: true } });
+    rows = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "asc" },
+    });
   } catch (error) {
     console.error("getProducts: database read failed", error);
     throw new Error("We're having trouble loading our products right now.");
   }
 
   const mapped = rows.map(mapProduct);
-  return PRODUCT_ORDER
+
+  const ordered = PRODUCT_ORDER
     .map((id) => mapped.find((product) => product.id === id))
     .filter((product): product is Product => Boolean(product));
+
+  const orderedIds = new Set(ordered.map((product) => product.id));
+  const extras = mapped.filter((product) => !orderedIds.has(product.id));
+
+  return [...ordered, ...extras];
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {

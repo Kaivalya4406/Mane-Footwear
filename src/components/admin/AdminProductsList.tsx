@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatPrice } from "../../lib/formatPrice";
 import type { Product } from "../../types";
@@ -70,7 +70,7 @@ export default function AdminProductsList({ products }: { products: Product[] })
                       <StatusBadge isActive={product.isActive} />
                     </td>
                     <td className="px-4 py-3">
-                      <EditAffordance />
+                      <EditAffordance productId={product.id} />
                     </td>
                   </tr>
                 ))}
@@ -93,7 +93,7 @@ export default function AdminProductsList({ products }: { products: Product[] })
                   <p className="text-sm font-semibold text-orange-dark">
                     {formatPrice(product.priceInPaise)}
                   </p>
-                  <EditAffordance />
+                  <EditAffordance productId={product.id} />
                 </div>
               </div>
             ))}
@@ -116,13 +116,13 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
   );
 }
 
-function EditAffordance() {
+function EditAffordance({ productId }: { productId: string }) {
   return (
-    <span aria-disabled="true" className="inline-flex items-center gap-1.5 text-sm text-foreground/40">
+    <Link
+      href={`/admin/products/${productId}/edit`}
+      className="text-sm font-medium text-navy hover:underline"
+    >
       Edit
-      <span className="rounded-full bg-gray-light px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground/50">
-        Soon
-      </span>
-    </span>
+    </Link>
   );
 }

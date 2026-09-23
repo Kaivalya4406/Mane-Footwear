@@ -29,6 +29,11 @@ export type CreateProductAction = (
   formData: FormData
 ) => Promise<ProductFormState>;
 
+export type UpdateProductAction = (
+  prevState: ProductFormState,
+  formData: FormData
+) => Promise<ProductFormState>;
+
 const priceRegex = /^\d+(\.\d{1,2})?$/;
 
 const productSchema = z.object({
@@ -37,7 +42,7 @@ const productSchema = z.object({
   description: z.string().trim().min(1, "Description is required.").max(2000, "Description is too long."),
   collectionId: z.string().trim().min(1, "Please select a collection."),
   badge: z.enum(["New", "Popular"]).optional(),
-    image: z
+  image: z
     .string()
     .trim()
     .refine(
@@ -74,10 +79,6 @@ function slugify(input: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-// Duck-typed check rather than importing Prisma's error class directly — this
-// project's Prisma 7 "prisma-client" generator setup has repeatedly had
-// surprises around exactly what's exported from where, so this avoids
-// depending on that and is defensively correct regardless.
 function isUniqueConstraintError(error: unknown): boolean {
   return (
     typeof error === "object" &&
@@ -87,10 +88,7 @@ function isUniqueConstraintError(error: unknown): boolean {
   );
 }
 
-export async function createProduct(
-  _prevState: ProductFormState,
-  formData: FormData
-): Promise<ProductFormState> {
+function extractFormValues(formData: FormData) {
   const rawName = String(formData.get("name") ?? "");
   const rawCategory = String(formData.get("category") ?? "");
   const rawPrice = String(formData.get("price") ?? "");
@@ -104,51 +102,69 @@ export async function createProduct(
   const badgeValue = typeof rawBadge === "string" && rawBadge.trim() !== "" ? rawBadge.trim() : undefined;
   const imageValue = typeof rawImage === "string" && rawImage.trim() !== "" ? rawImage.trim() : undefined;
 
-  const preservedValues = {
-    name: rawName,
-    category: rawCategory,
-    price: rawPrice,
-    collectionId: rawCollectionId,
-    description: rawDescription,
-    badge: badgeValue,
-    image: imageValue,
-    iconKind: rawIconKind,
-    isActive: isActiveValue,
+  return {
+    preserved: {
+      name: rawName,
+      category: rawCategory,
+      price: rawPrice,
+      collectionId: rawCollectionId,
+      description: rawDescription,
+      badge: badgeValue,
+      image: imageValue,
+      iconKind: rawIconKind,
+      isActive: isActiveValue,
+    },
+    forSchema: {
+      name: rawName,
+      category: rawCategory,
+      description: rawDescription,
+      collectionId: rawCollectionId,
+      badge: badgeValue,
+      image: imageValue,
+      iconKind: rawIconKind,
+      isActive: isActiveValue,
+      price: rawPrice,
+    },
   };
+}
 
-  const parsed = productSchema.safeParse({
-    name: rawName,
-    category: rawCategory,
-    description: rawDescription,
-    collectionId: rawCollectionId,
-    badge: badgeValue,
-    image: imageValue,
-    iconKind: rawIconKind,
-    isActive: isActiveValue,
-    price: rawPrice,
-  });
+export async function createProduct(
+  _prevState: ProductFormState,
+  formData: FormData
+): Promise<ProductFormState> {
+  const { preserved, forSchema } = extractFormValues(formData);
+
+  const parsed = productSchema.safeParse(forSchema);
 
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[]>;
-    return { fieldErrors, values: preservedValues };
+    return { fieldErrors, values: preserved };
   }
 
-  // Session verification happens AFTER validation but BEFORE any Prisma write —
-  // independent of the protected layout's own check, per the security requirement.
-  const session = await auth.api.getSession({ headers: await headers() });
+  let session;
+  try {
+    session = await auth.api.getSession({ headers: await headers() });
+  } catch (error) {
+    console.error("createProduct: session check failed", error);
+    return { error: "Something went wrong. Please try again.", values: preserved };
+  }
 
   if (!session) {
-    return { error: "Not authorized.", values: preservedValues };
+    return { error: "Not authorized.", values: preserved };
   }
 
-  const collection = await prisma.collection.findUnique({
-    where: { id: parsed.data.collectionId },
-  });
+  let collection;
+  try {
+    collection = await prisma.collection.findUnique({ where: { id: parsed.data.collectionId } });
+  } catch (error) {
+    console.error("createProduct: collection lookup failed", error);
+    return { error: "Something went wrong. Please try again.", values: preserved };
+  }
 
   if (!collection) {
     return {
       fieldErrors: { collectionId: ["Selected collection does not exist."] },
-      values: preservedValues,
+      values: preserved,
     };
   }
 
@@ -158,51 +174,141 @@ export async function createProduct(
   const MAX_ATTEMPTS = 10;
 
   let created = null;
-
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const candidateId = attempt === 0 ? base : `${base}-${attempt + 1}`;
-    try {
-      created = await prisma.product.create({
-        data: {
-          id: candidateId,
-          name: parsed.data.name,
-          category: parsed.data.category,
-          price: legacyPrice,
-          priceInPaise,
-          badge: parsed.data.badge,
-          image: parsed.data.image,
-          iconKind: parsed.data.iconKind,
-          description: parsed.data.description,
-          isDemo: false,
-          isActive: parsed.data.isActive,
-          collectionId: parsed.data.collectionId,
-          brandId: null,
-        },
-      });
-      break;
-    } catch (error) {
-      if (isUniqueConstraintError(error)) {
-        continue; // id collision — try the next suffix
+  try {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const candidateId = attempt === 0 ? base : `${base}-${attempt + 1}`;
+      try {
+        created = await prisma.product.create({
+          data: {
+            id: candidateId,
+            name: parsed.data.name,
+            category: parsed.data.category,
+            price: legacyPrice,
+            priceInPaise,
+            badge: parsed.data.badge,
+            image: parsed.data.image,
+            iconKind: parsed.data.iconKind,
+            description: parsed.data.description,
+            isDemo: false,
+            isActive: parsed.data.isActive,
+            collectionId: parsed.data.collectionId,
+            brandId: null,
+          },
+        });
+        break;
+      } catch (error) {
+        if (isUniqueConstraintError(error)) {
+          continue;
+        }
+        throw error;
       }
-      console.error("createProduct: database write failed", error);
-      return {
-        error: "Something went wrong while creating the product. Please try again.",
-        values: preservedValues,
-      };
     }
+  } catch (error) {
+    console.error("createProduct: database write failed", error);
+    return {
+      error: "Something went wrong while creating the product. Please try again.",
+      values: preserved,
+    };
   }
 
   if (!created) {
     return {
       error: "Could not generate a unique product ID. Please try a different name.",
-      values: preservedValues,
+      values: preserved,
     };
   }
 
-  // redirect() throws internally — it must sit here, outside any try/catch,
-  // never inside the catch block above.
   revalidatePath("/admin/products");
   revalidatePath("/");
   revalidatePath("/collections");
+  redirect("/admin/products");
+}
+
+export async function updateProduct(
+  productId: string,
+  _prevState: ProductFormState,
+  formData: FormData
+): Promise<ProductFormState> {
+  const { preserved, forSchema } = extractFormValues(formData);
+
+  const parsed = productSchema.safeParse(forSchema);
+
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[]>;
+    return { fieldErrors, values: preserved };
+  }
+
+  let session;
+  try {
+    session = await auth.api.getSession({ headers: await headers() });
+  } catch (error) {
+    console.error("updateProduct: session check failed", error);
+    return { error: "Something went wrong. Please try again.", values: preserved };
+  }
+
+  if (!session) {
+    return { error: "Not authorized.", values: preserved };
+  }
+
+  let existingProduct;
+  try {
+    existingProduct = await prisma.product.findUnique({ where: { id: productId } });
+  } catch (error) {
+    console.error(`updateProduct(${productId}): product lookup failed`, error);
+    return { error: "Something went wrong. Please try again.", values: preserved };
+  }
+
+  if (!existingProduct) {
+    return { error: "This product no longer exists.", values: preserved };
+  }
+
+  let collection;
+  try {
+    collection = await prisma.collection.findUnique({ where: { id: parsed.data.collectionId } });
+  } catch (error) {
+    console.error("updateProduct: collection lookup failed", error);
+    return { error: "Something went wrong. Please try again.", values: preserved };
+  }
+
+  if (!collection) {
+    return {
+      fieldErrors: { collectionId: ["Selected collection does not exist."] },
+      values: preserved,
+    };
+  }
+
+  const priceInPaise = parsed.data.price;
+  const legacyPrice = formatPrice(priceInPaise);
+
+  try {
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        name: parsed.data.name,
+        category: parsed.data.category,
+        price: legacyPrice,
+        priceInPaise,
+        badge: parsed.data.badge,
+        image: parsed.data.image,
+        iconKind: parsed.data.iconKind,
+        description: parsed.data.description,
+        isActive: parsed.data.isActive,
+        collectionId: parsed.data.collectionId,
+        // id, isDemo, brandId, createdAt intentionally omitted — never editable.
+        // updatedAt is Prisma-managed via @updatedAt.
+      },
+    });
+  } catch (error) {
+    console.error(`updateProduct(${productId}): database write failed`, error);
+    return {
+      error: "Something went wrong while saving the product. Please try again.",
+      values: preserved,
+    };
+  }
+
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  revalidatePath("/collections");
+  revalidatePath(`/products/${productId}`);
   redirect("/admin/products");
 }

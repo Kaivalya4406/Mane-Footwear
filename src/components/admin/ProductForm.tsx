@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import type { Collection } from "../../types";
-import type { ProductFormState, CreateProductAction } from "../../app/admin/(protected)/products/actions";
+import type { ProductFormState, CreateProductAction, UpdateProductAction } from "../../app/admin/(protected)/products/actions";
 
 const ICON_KIND_OPTIONS = [
   { value: "sneaker", label: "Sneaker" },
@@ -44,27 +44,39 @@ function Field({
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ mode }: { mode: "create" | "edit" }) {
   const { pending } = useFormStatus();
+  const idleLabel = mode === "edit" ? "Save Changes" : "Create Product";
+  const pendingLabel = mode === "edit" ? "Saving..." : "Creating...";
   return (
     <button
       type="submit"
       disabled={pending}
       className="inline-flex items-center justify-center rounded-full bg-orange px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-orange-dark disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {pending ? "Creating..." : "Create Product"}
+      {pending ? pendingLabel : idleLabel}
     </button>
   );
 }
 
+type ProductFormValues = NonNullable<ProductFormState["values"]>;
+
 export default function ProductForm({
   action,
   collections,
+  initialValues,
+  mode = "create",
 }: {
-  action: CreateProductAction;
+  action: CreateProductAction | UpdateProductAction;
   collections: Collection[];
+  initialValues?: ProductFormValues;
+  mode?: "create" | "edit";
 }) {
-  const [state, formAction] = useActionState(action, initialState);
+  const [state, formAction] = useActionState(action as CreateProductAction, initialState);
+
+  // Server-returned values (after a failed submission) take precedence over
+  // the original initialValues, so the admin doesn't lose what they typed.
+  const values = state.values ?? initialValues ?? {};
 
   return (
     <div>
@@ -84,11 +96,11 @@ export default function ProductForm({
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Name" htmlFor="name" error={state.fieldErrors?.name}>
-            <input id="name" name="name" type="text" defaultValue={state.values?.name} required className={inputClass} />
+            <input id="name" name="name" type="text" defaultValue={values.name} required className={inputClass} />
           </Field>
 
           <Field label="Category" htmlFor="category" error={state.fieldErrors?.category}>
-            <input id="category" name="category" type="text" defaultValue={state.values?.category} required className={inputClass} />
+            <input id="category" name="category" type="text" defaultValue={values.category} required className={inputClass} />
           </Field>
 
           <Field label="Price (₹)" htmlFor="price" error={state.fieldErrors?.price}>
@@ -98,14 +110,14 @@ export default function ProductForm({
               type="text"
               inputMode="decimal"
               placeholder="1499 or 1499.50"
-              defaultValue={state.values?.price}
+              defaultValue={values.price}
               required
               className={inputClass}
             />
           </Field>
 
           <Field label="Collection" htmlFor="collectionId" error={state.fieldErrors?.collectionId}>
-            <select id="collectionId" name="collectionId" defaultValue={state.values?.collectionId ?? ""} required className={inputClass}>
+            <select id="collectionId" name="collectionId" defaultValue={values.collectionId ?? ""} required className={inputClass}>
               <option value="" disabled>Select a collection</option>
               {collections.map((collection) => (
                 <option key={collection.id} value={collection.id}>{collection.name}</option>
@@ -114,7 +126,7 @@ export default function ProductForm({
           </Field>
 
           <Field label="Icon" htmlFor="iconKind" error={state.fieldErrors?.iconKind}>
-            <select id="iconKind" name="iconKind" defaultValue={state.values?.iconKind ?? ""} required className={inputClass}>
+            <select id="iconKind" name="iconKind" defaultValue={values.iconKind ?? ""} required className={inputClass}>
               <option value="" disabled>Select an icon</option>
               {ICON_KIND_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -123,7 +135,7 @@ export default function ProductForm({
           </Field>
 
           <Field label="Badge (optional)" htmlFor="badge" error={state.fieldErrors?.badge}>
-            <select id="badge" name="badge" defaultValue={state.values?.badge ?? ""} className={inputClass}>
+            <select id="badge" name="badge" defaultValue={values.badge ?? ""} className={inputClass}>
               <option value="">None</option>
               <option value="New">New</option>
               <option value="Popular">Popular</option>
@@ -131,11 +143,11 @@ export default function ProductForm({
           </Field>
 
           <Field label="Image URL (optional)" htmlFor="image" error={state.fieldErrors?.image} className="sm:col-span-2">
-            <input id="image" name="image" type="text" placeholder="https://..." defaultValue={state.values?.image} className={inputClass} />
+            <input id="image" name="image" type="text" placeholder="https://..." defaultValue={values.image} className={inputClass} />
           </Field>
 
           <Field label="Description" htmlFor="description" error={state.fieldErrors?.description} className="sm:col-span-2">
-            <textarea id="description" name="description" rows={4} defaultValue={state.values?.description} required className={inputClass} />
+            <textarea id="description" name="description" rows={4} defaultValue={values.description} required className={inputClass} />
           </Field>
         </div>
 
@@ -144,7 +156,7 @@ export default function ProductForm({
             id="isActive"
             name="isActive"
             type="checkbox"
-            defaultChecked={state.values?.isActive ?? true}
+            defaultChecked={values.isActive ?? true}
             className="h-4 w-4 rounded border-gray-light text-navy focus:outline-none"
           />
           <label htmlFor="isActive" className="text-sm font-medium text-navy">
@@ -152,7 +164,12 @@ export default function ProductForm({
           </label>
         </div>
 
-        <SubmitButton />
+        <div className="flex items-center gap-4">
+          <SubmitButton mode={mode} />
+          <Link href="/admin/products" className="text-sm font-medium text-navy hover:underline">
+            Cancel
+          </Link>
+        </div>
       </form>
     </div>
   );

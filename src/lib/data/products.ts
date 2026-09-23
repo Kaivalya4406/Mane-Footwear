@@ -91,3 +91,15 @@ export async function getAllProductsForAdmin(): Promise<Product[]> {
 
   return rows.map(mapProduct);
 }
+
+export async function getProductByIdForAdmin(id: string): Promise<Product | undefined> {
+  let row;
+  try {
+    row = await prisma.product.findUnique({ where: { id } });
+  } catch (error) {
+    console.error(`getProductByIdForAdmin(${id}): database read failed`, error);
+    throw new Error("We're having trouble loading this product right now.");
+  }
+
+  return row ? mapProduct(row) : undefined;
+}

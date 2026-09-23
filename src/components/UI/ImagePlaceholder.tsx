@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { ShoeIconKind } from "../../types";
 
 type ImagePlaceholderProps = {
@@ -36,10 +35,15 @@ export default function ImagePlaceholder({
   kind = "sneaker",
   iconClassName = "h-14 w-16 sm:h-16 sm:w-20",
 }: ImagePlaceholderProps) {
-  if (src) {
+      if (src) {
     return (
       <div className={`relative overflow-hidden rounded-lg ${aspectRatio} ${className}`}>
-        <Image src={src} alt={alt} fill className="object-cover" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
       </div>
     );
   }

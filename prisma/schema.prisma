@@ -46,6 +46,24 @@ model Product {
 
   brandId      String?
   brand        Brand?     @relation(fields: [brandId], references: [id])
+
+  variants     ProductVariant[]
+}
+
+model ProductVariant {
+  id           String   @id
+  productId    String
+  size         String
+  sku          String?
+  priceInPaise Int
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([productId, size])
+  @@index([productId])
 }
 
 model Branch {

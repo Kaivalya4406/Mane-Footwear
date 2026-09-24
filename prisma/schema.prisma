@@ -50,6 +50,38 @@ model Product {
   variants     ProductVariant[]
 }
 
+enum StockMovementReason {
+  PURCHASE
+  SALE
+  SALE_RETURN
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  DAMAGE
+}
+
+model Inventory {
+  id                 String   @id
+  productVariantId   String   @unique
+  quantity           Int
+  averageCostInPaise Int
+  updatedAt          DateTime @updatedAt
+
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+}
+
+model StockMovement {
+  id                    String              @id
+  productVariantId      String
+  quantityChange        Int
+  reason                StockMovementReason
+  costInPaiseAtMovement Int?
+  createdAt             DateTime            @default(now())
+
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  @@index([productVariantId, createdAt])
+}
+
 model ProductVariant {
   id           String   @id
   productId    String
@@ -61,6 +93,9 @@ model ProductVariant {
   updatedAt    DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id])
+
+  inventory      Inventory?
+  stockMovements StockMovement[]
 
   @@unique([productId, size])
   @@index([productId])

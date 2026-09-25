@@ -96,9 +96,64 @@ model ProductVariant {
 
   inventory      Inventory?
   stockMovements StockMovement[]
+  purchaseItems  PurchaseItem[]
 
   @@unique([productId, size])
   @@index([productId])
+}
+
+enum PurchasePaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+model Supplier {
+  id            String   @id
+  name          String
+  phone         String?
+  email         String?
+  address       String?
+  notes         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  purchaseBills PurchaseBill[]
+}
+
+model PurchaseBill {
+  id               String                @id
+  supplierId       String
+  billNumber       String
+  billDate         DateTime
+  billTotalInPaise Int
+  documentUrl      String?
+  paymentStatus    PurchasePaymentStatus
+  notes            String?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  supplier      Supplier       @relation(fields: [supplierId], references: [id])
+  purchaseItems PurchaseItem[]
+
+  @@unique([supplierId, billNumber])
+  @@index([supplierId, billDate])
+}
+
+model PurchaseItem {
+  id               String @id
+  purchaseBillId   String
+  productVariantId String
+  quantity         Int
+  unitCostInPaise  Int
+  totalCostInPaise Int
+
+  purchaseBill   PurchaseBill   @relation(fields: [purchaseBillId], references: [id])
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  @@index([purchaseBillId])
+  @@index([productVariantId])
 }
 
 model Branch {

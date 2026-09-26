@@ -120,6 +120,7 @@ model Supplier {
   updatedAt     DateTime @updatedAt
 
   purchaseBills PurchaseBill[]
+  supplierPayments SupplierPayment[]
 }
 
 model PurchaseBill {
@@ -136,6 +137,7 @@ model PurchaseBill {
 
   supplier      Supplier       @relation(fields: [supplierId], references: [id])
   purchaseItems PurchaseItem[]
+  supplierPayments SupplierPayment[]
 
   @@unique([supplierId, billNumber])
   @@index([supplierId, billDate])
@@ -154,6 +156,43 @@ model PurchaseItem {
 
   @@index([purchaseBillId])
   @@index([productVariantId])
+}
+
+enum PaymentAccountType {
+  CASH
+  BANK
+  UPI
+}
+
+model PaymentAccount {
+  id                    String             @id
+  name                  String
+  type                  PaymentAccountType
+  openingBalanceInPaise Int
+  isActive              Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  supplierPayments SupplierPayment[]
+}
+
+model SupplierPayment {
+  id               String   @id
+  supplierId       String
+  purchaseBillId   String?
+  paymentAccountId String
+  amountInPaise    Int
+  paidAt           DateTime
+  notes            String?
+  createdAt        DateTime @default(now())
+
+  supplier       Supplier       @relation(fields: [supplierId], references: [id])
+  purchaseBill   PurchaseBill?  @relation(fields: [purchaseBillId], references: [id])
+  paymentAccount PaymentAccount @relation(fields: [paymentAccountId], references: [id])
+
+  @@index([supplierId, paidAt])
+  @@index([purchaseBillId])
+  @@index([paymentAccountId, paidAt])
 }
 
 model Branch {

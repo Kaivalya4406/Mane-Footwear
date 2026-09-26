@@ -97,6 +97,7 @@ model ProductVariant {
   inventory      Inventory?
   stockMovements StockMovement[]
   purchaseItems  PurchaseItem[]
+  saleItems      SaleItem[]
 
   @@unique([productId, size])
   @@index([productId])
@@ -174,6 +175,7 @@ model PaymentAccount {
   updatedAt             DateTime           @updatedAt
 
   supplierPayments SupplierPayment[]
+  sales            Sale[]
 }
 
 model SupplierPayment {
@@ -193,6 +195,46 @@ model SupplierPayment {
   @@index([supplierId, paidAt])
   @@index([purchaseBillId])
   @@index([paymentAccountId, paidAt])
+}
+
+enum SaleMode {
+  DETAILED
+  DAILY_SUMMARY
+}
+
+model Sale {
+  id                  String   @id
+  mode                SaleMode
+  paymentAccountId    String
+  totalRevenueInPaise Int
+  totalCogsInPaise    Int?
+  soldAt              DateTime
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  paymentAccount PaymentAccount @relation(fields: [paymentAccountId], references: [id])
+  saleItems      SaleItem[]
+
+  @@index([paymentAccountId, soldAt])
+  @@index([soldAt, mode])
+}
+
+model SaleItem {
+  id                      String @id
+  saleId                  String
+  productVariantId        String
+  quantity                Int
+  unitSellingPriceInPaise Int
+  unitCostInPaise         Int
+  lineRevenueInPaise      Int
+  lineCogsInPaise         Int
+
+  sale           Sale           @relation(fields: [saleId], references: [id])
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  @@index([saleId])
+  @@index([productVariantId])
 }
 
 model Branch {

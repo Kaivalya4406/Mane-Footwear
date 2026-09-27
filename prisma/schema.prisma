@@ -215,6 +215,7 @@ model Sale {
 
   paymentAccount PaymentAccount @relation(fields: [paymentAccountId], references: [id])
   saleItems      SaleItem[]
+  saleReturns    SaleReturn[]
 
   @@index([paymentAccountId, soldAt])
   @@index([soldAt, mode])
@@ -232,9 +233,41 @@ model SaleItem {
 
   sale           Sale           @relation(fields: [saleId], references: [id])
   productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+  returnItems    SaleReturnItem[]
 
   @@index([saleId])
   @@index([productVariantId])
+}
+
+model SaleReturn {
+  id                  String   @id
+  saleId              String
+  returnedAt          DateTime
+  refundAmountInPaise Int
+  reason              String?
+  notes               String?
+  createdAt           DateTime @default(now())
+
+  sale        Sale             @relation(fields: [saleId], references: [id])
+  returnItems SaleReturnItem[]
+
+  @@index([saleId, returnedAt])
+}
+
+model SaleReturnItem {
+  id                String   @id
+  saleReturnId      String
+  saleItemId        String
+  quantity          Int
+  refundLineInPaise Int
+  restockInventory  Boolean
+  createdAt         DateTime @default(now())
+
+  saleReturn SaleReturn @relation(fields: [saleReturnId], references: [id])
+  saleItem   SaleItem   @relation(fields: [saleItemId], references: [id])
+
+  @@index([saleReturnId])
+  @@index([saleItemId])
 }
 
 model Branch {

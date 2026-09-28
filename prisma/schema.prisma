@@ -176,6 +176,7 @@ model PaymentAccount {
 
   supplierPayments SupplierPayment[]
   sales            Sale[]
+  expenses         Expense[]
 }
 
 model SupplierPayment {
@@ -268,6 +269,34 @@ model SaleReturnItem {
 
   @@index([saleReturnId])
   @@index([saleItemId])
+}
+
+model ExpenseCategory {
+  id        String   @id
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  expenses Expense[]
+}
+
+model Expense {
+  id                String   @id
+  expenseCategoryId String
+  paymentAccountId  String
+  amountInPaise     Int
+  expenseDate       DateTime
+  description       String
+  documentUrl       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  expenseCategory ExpenseCategory @relation(fields: [expenseCategoryId], references: [id])
+  paymentAccount  PaymentAccount  @relation(fields: [paymentAccountId], references: [id])
+
+  @@index([expenseCategoryId, expenseDate])
+  @@index([paymentAccountId, expenseDate])
 }
 
 model Branch {

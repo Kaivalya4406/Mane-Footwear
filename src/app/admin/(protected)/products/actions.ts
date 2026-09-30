@@ -1,10 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "../../../../lib/auth";
+import { requireAdminSession } from "../../../../lib/admin";
 import { prisma } from "../../../../lib/prisma";
 import { formatPrice } from "../../../../lib/formatPrice";
 
@@ -141,13 +140,7 @@ export async function createProduct(
     return { fieldErrors, values: preserved };
   }
 
-  let session;
-  try {
-    session = await auth.api.getSession({ headers: await headers() });
-  } catch (error) {
-    console.error("createProduct: session check failed", error);
-    return { error: "Something went wrong. Please try again.", values: preserved };
-  }
+  const session = await requireAdminSession();
 
   if (!session) {
     return { error: "Not authorized.", values: preserved };
@@ -238,13 +231,7 @@ export async function updateProduct(
     return { fieldErrors, values: preserved };
   }
 
-  let session;
-  try {
-    session = await auth.api.getSession({ headers: await headers() });
-  } catch (error) {
-    console.error("updateProduct: session check failed", error);
-    return { error: "Something went wrong. Please try again.", values: preserved };
-  }
+  const session = await requireAdminSession();
 
   if (!session) {
     return { error: "Not authorized.", values: preserved };

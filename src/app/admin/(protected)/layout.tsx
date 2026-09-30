@@ -1,14 +1,11 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "../../../lib/auth";
+import { requireAdminSession } from "../../../lib/admin";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import AdminHeader from "../../../components/admin/AdminHeader";
 import AdminMobileNav from "../../../components/admin/AdminMobileNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await requireAdminSession();
 
   if (!session) {
     redirect("/admin/login");

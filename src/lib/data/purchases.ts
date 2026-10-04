@@ -30,7 +30,7 @@ export async function createPurchaseBill(input: CreatePurchaseBillInput) {
   for (const item of input.items) {
     if (seenVariantIds.has(item.productVariantId)) {
       throw new Error(
-        `Duplicate product variant in purchase bill: ${item.productVariantId}. Combine quantities into a single line instead.`
+        `This purchase bill already has a line for this exact size (variant ${item.productVariantId}). Combine the quantities into one line instead.`
       );
     }
     seenVariantIds.add(item.productVariantId);
@@ -55,6 +55,14 @@ export async function createPurchaseBill(input: CreatePurchaseBillInput) {
 
   try {
     return await prisma.$transaction(async (tx) => {
+      const supplier = await tx.supplier.findUnique({
+        where: { id: input.supplierId },
+      });
+
+      if (!supplier) {
+        throw new Error(`Supplier ${input.supplierId} does not exist.`);
+      }
+
       const bill = await tx.purchaseBill.create({
         data: {
           id: generateId(),

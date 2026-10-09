@@ -157,3 +157,55 @@ export async function createPurchaseBill(input: CreatePurchaseBillInput) {
     throw error;
   }
 }
+
+export async function getPurchaseBills() {
+  try {
+    return await prisma.purchaseBill.findMany({
+      include: { supplier: true },
+      orderBy: [{ billDate: "desc" }, { createdAt: "desc" }],
+    });
+  } catch (error) {
+    console.error("getPurchaseBills: database read failed", error);
+    throw error;
+  }
+}
+
+export async function getPurchaseBillById(id: string) {
+  try {
+    return await prisma.purchaseBill.findUnique({
+      where: { id },
+      include: {
+        supplier: true,
+        purchaseItems: {
+          orderBy: [
+            { productVariant: { product: { name: "asc" } } },
+            { productVariant: { createdAt: "asc" } },
+          ],
+          include: {
+            productVariant: {
+              include: { product: { select: { id: true, name: true } } },
+            },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error(`getPurchaseBillById(${id}): database read failed`, error);
+    throw error;
+  }
+}
+
+export async function getPurchaseBillsBySupplierId(supplierId: string) {
+  try {
+    return await prisma.purchaseBill.findMany({
+      where: { supplierId },
+      orderBy: [{ billDate: "desc" }, { createdAt: "desc" }],
+    });
+  } catch (error) {
+    console.error(
+      `getPurchaseBillsBySupplierId(${supplierId}): database read failed`,
+      error
+    );
+    throw error;
+  }
+}
